@@ -33,8 +33,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     /* global suite, test, fixture, assert */
     suite('basic', function() {
       var element;
+      var supportHeaderObject;
       setup(function() {
         element = fixture('basic');
+        var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        var isEdge = isSafari ? false : navigator.userAgent.match(/Edge\/\d+/);
+        supportHeaderObject = !isSafari && !isEdge;
       });
       test('Should filter headers', function() {
         var headers = [{
@@ -76,14 +80,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('Should parse Headers object to string', function() {
-        var headers = new Headers();
-        headers.append('x-test', 'value 1');
-        headers.append('x-test', 'value 2');
-        headers.append('Content-Type', 'application/json');
-        var ref = 'x-test: value 1, value 2\n';
-        ref += 'content-type: application/json';
-        var parsed = element.headersToString(headers);
-        assert.equal(parsed, ref);
+        if (supportHeaderObject) {
+          var headers = new Headers();
+          headers.append('x-test', 'value 1');
+          headers.append('x-test', 'value 2');
+          headers.append('Content-Type', 'application/json');
+          var ref = 'x-test: value 1, value 2\n';
+          ref += 'content-type: application/json';
+          var parsed = element.headersToString(headers);
+          assert.equal(parsed, ref);
+        }
       });
 
       test('Should parse string to string', function() {
@@ -120,90 +126,88 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('Should parse Headers object to array', function() {
-        var headers = new Headers();
-        headers.append('x-test', 'value 1, value 2');
-        headers.append('Content-Type', 'application/json');
-        headers.append('x-test-2', 'v1');
-        headers.append('x-test-2', 'v2');
+        if (supportHeaderObject) {
+          var headers = new Headers();
+          headers.append('x-test', 'value 1, value 2');
+          headers.append('Content-Type', 'application/json');
+          headers.append('x-test-2', 'v1');
+          headers.append('x-test-2', 'v2');
 
-        var ref = [{
-          name: 'x-test',
-          value: 'value 1, value 2'
-        }, {
-          name: 'content-type',
-          value: 'application/json'
-        }, {
-          name: 'x-test-2',
-          value: 'v1'
-        }, {
-          name: 'x-test-2',
-          value: 'v2'
-        }];
-        var parsed = element.headersToJSON(headers);
-        assert.deepEqual(parsed, ref);
+          var ref = [{
+            name: 'x-test',
+            value: 'value 1, value 2'
+          }, {
+            name: 'content-type',
+            value: 'application/json'
+          }, {
+            name: 'x-test-2',
+            value: 'v1'
+          }, {
+            name: 'x-test-2',
+            value: 'v2'
+          }];
+          var parsed = element.headersToJSON(headers);
+          assert.deepEqual(parsed, ref);
+        }
       });
 
       test('Should find the Content-Type header', function() {
-        var headers = new Headers();
-        headers.append('x-test', 'value 1, value 2');
-        headers.append('Content-Type', 'application/json');
-        headers.append('x-test-2', 'v1');
-        headers.append('x-test-2', 'v2');
+        var headers = 'x-test: value 1, value 2\n';
+        headers += 'content-type: application/json\n';
+        headers += 'x-test-2: v1\n';
+        headers += 'x-test-2: v2';
 
         var ct = element.getContentType(headers);
         assert.equal(ct, 'application/json');
       });
 
       test('Should find the multipart Content-Type header', function() {
-        var headers = new Headers();
-        headers.append('x-test', 'value 1, value 2');
-        headers.append('Content-Type', 'multipart/mixed; boundary=gc0p4Jq0M2Yt08jU534c0p');
-        headers.append('x-test-2', 'v1');
-        headers.append('x-test-2', 'v2');
+        var headers = 'x-test: value 1, value 2\n';
+        headers += 'content-type: multipart/mixed; boundary=gc0p4Jq0M2Yt08jU534c0p\n';
+        headers += 'x-test-2: v1\n';
+        headers += 'x-test-2: v2';
 
         var ct = element.getContentType(headers);
         assert.equal(ct, 'multipart/mixed; boundary=gc0p4Jq0M2Yt08jU534c0p');
       });
 
       test('Should find the Content-Type header with extension', function() {
-        var headers = new Headers();
-        headers.append('x-test', 'value 1, value 2');
-        headers.append('Content-Type', 'text/html; charset=ISO-8859-4');
-        headers.append('x-test-2', 'v1');
-        headers.append('x-test-2', 'v2');
+        var headers = 'x-test: value 1, value 2\n';
+        headers += 'content-type: text/html; charset=ISO-8859-4\n';
+        headers += 'x-test-2: v1\n';
+        headers += 'x-test-2: v2';
 
         var ct = element.getContentType(headers);
         assert.equal(ct, 'text/html');
       });
 
       test('Should replace header value', function() {
-        var headers = new Headers();
-        headers.append('x-test', 'value 1, value 2');
-        headers.append('Content-Type', 'text/html; charset=ISO-8859-4');
-        headers.append('x-test-2', 'v1');
-        headers.append('x-test-2', 'v2');
+        var headers = 'x-test: value 1, value 2\n';
+        headers += 'content-type: text/html; charset=ISO-8859-4\n';
+        headers += 'x-test-2: v1\n';
+        headers += 'x-test-2: v2';
 
         headers = element.replaceHeaderValue(headers, 'content-type', 'application/json');
-        assert.equal(headers.get('content-type'), 'application/json');
+        var match = headers.match(/^content-type: (.*)$/im);
+        assert.notEqual(match, null);
+        assert.equal(match[1], 'application/json');
       });
 
       test('Should not find error', function() {
-        var headers = new Headers();
-        headers.append('x-test', 'value 1, value 2');
-        headers.append('Content-Type', 'text/html; charset=ISO-8859-4');
-        headers.append('x-test-2', 'v1');
-        headers.append('x-test-2', 'v2');
+        var headers = 'x-test: value 1, value 2\n';
+        headers += 'content-type: text/html; charset=ISO-8859-4\n';
+        headers += 'x-test-2: v1\n';
+        headers += 'x-test-2: v2';
 
         var valid = element.getHeaderError(headers);
         assert.equal(valid, null);
       });
 
       test('Should find empty value error', function() {
-        var headers = new Headers();
-        headers.append('x-test', '');
-        headers.append('Content-Type', 'text/html; charset=ISO-8859-4');
-        headers.append('x-test-2', 'v1');
-        headers.append('x-test-2', 'v2');
+        var headers = 'x-test: \n';
+        headers += 'content-type: text/html; charset=ISO-8859-4\n';
+        headers += 'x-test-2: v1\n';
+        headers += 'x-test-2: v2';
 
         var valid = element.getHeaderError(headers);
         assert.notEqual(valid, null);
@@ -211,10 +215,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('Should find no Content-Type error', function() {
-        var headers = new Headers();
-        headers.append('x-test', 'test');
-        headers.append('x-test-2', 'v1');
-        headers.append('x-test-2', 'v2');
+        var headers = 'x-test: value 1, value 2\n';
+        headers += 'x-test-2: v1\n';
+        headers += 'x-test-2: v2';
 
         element.isPayload = true;
         var valid = element.getHeaderError(headers);
