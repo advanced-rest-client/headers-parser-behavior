@@ -47,7 +47,7 @@ the License.
      */
     filterHeaders: function(headers) {
       var _tmp = {};
-      headers.forEach((header) => {
+      headers.forEach(function(header) {
         if (header.name in _tmp) {
           if (!!header.value) {
             _tmp[header.name] += ', ' + header.value;
@@ -57,7 +57,7 @@ the License.
         }
       });
       var result = [];
-      for (let _key in _tmp) {
+      for (var _key in _tmp) {
         result[result.length] = {
           'name': _key,
           'value': _tmp[_key]
@@ -85,12 +85,12 @@ the License.
       }
       headersArray = this.filterHeaders(headersArray);
       var result = '';
-      headersArray.forEach((header) => {
+      headersArray.forEach(function(header) {
         if (result !== '') {
           result += '\n';
         }
-        let key = header.name;
-        let value = header.value;
+        var key = header.name;
+        var value = header.value;
         if (key && key.trim() !== '') {
           result += key + ': ';
           if (value && value.trim() !== '') {
@@ -129,12 +129,12 @@ the License.
       var result = [];
       var headers = headersString.split(/\n/gim);
 
-      for (let i = 0, len = headers.length; i < len; i++) {
-        let line = headers[i].trim();
+      for (var i = 0, len = headers.length; i < len; i++) {
+        var line = headers[i].trim();
         if (line === '') {
           continue;
         }
-        let sepPosition = line.indexOf(':');
+        var sepPosition = line.indexOf(':');
         if (sepPosition === -1) {
           result[result.length] = {
             name: line,
@@ -142,9 +142,9 @@ the License.
           };
           continue;
         }
-        let name = line.substr(0, sepPosition);
-        let value = line.substr(sepPosition + 1).trim();
-        let obj = {
+        var name = line.substr(0, sepPosition);
+        var value = line.substr(sepPosition + 1).trim();
+        var obj = {
           name: name,
           value: value
         };
@@ -161,7 +161,7 @@ the License.
       if (!headers) {
         return [];
       }
-      return Array.from(headers).map((item) => {
+      return Array.from(headers).map(function(item) {
         return {
           name: item[0],
           value: item[1]
@@ -182,7 +182,9 @@ the License.
         throw new Error('Headers must be an array');
       }
       encoding = String(encoding);
-      var ct = headers.filter((item) => item.name.toLowerCase() === 'content-type');
+      var ct = headers.filter(function(item) {
+        return item.name.toLowerCase() === 'content-type';
+      });
       if (ct.length === 0) {
         headers.push({
           'name': 'Content-Type',
@@ -214,7 +216,7 @@ the License.
       }
       var ct = match[1].trim();
       if (ct.indexOf('multipart') === -1) {
-        let index = ct.indexOf('; ');
+        var index = ct.indexOf('; ');
         if (index > 0) {
           ct = ct.substr(0, index);
         }
@@ -243,7 +245,7 @@ the License.
       }
       var _name = name.toLowerCase();
       var found = false;
-      headers.forEach((header) => {
+      headers.forEach(function(header) {
         if (header.name.toLowerCase() === _name) {
           header.value = value;
           found = true;
@@ -261,7 +263,7 @@ the License.
         return this.headersToString(headers);
       }
       var obj = {};
-      headers.forEach((header) => {
+      headers.forEach(function(header) {
         obj[header.name] = header.value;
       });
       return new Headers(obj);
@@ -282,8 +284,8 @@ the License.
       var msg = [];
       var hasContentType = false;
       for (var i = 0, len = input.length; i < len; i++) {
-        let name = input[i].name;
-        let value = input[i].value;
+        var name = input[i].name;
+        var value = input[i].value;
         if (name.toLowerCase() === 'content-type') {
           hasContentType = true;
         }
