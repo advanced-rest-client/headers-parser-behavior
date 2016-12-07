@@ -1,0 +1,228 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <script src="../../iron-test-helpers/test-helpers.js"></script>
+    <script src="../../iron-test-helpers/mock-interactions.js"></script>
+
+    <!-- Step 1: import the element to test -->
+    <link rel="import" href="test-element.html">
+  </head>
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <test-element></test-element>
+      </template>
+    </test-fixture>
+
+    <script>
+    /* global suite, test, fixture, assert */
+    suite('basic', function() {
+      var element;
+      setup(function() {
+        element = fixture('basic');
+      });
+      test('Should filter headers', function() {
+        var headers = [{
+          name: 'x-test',
+          value: 'value 1'
+        }, {
+          name: 'x-test',
+          value: 'value 2'
+        }, {
+          name: 'Content-Type',
+          value: 'application/json'
+        }];
+        var ref = [{
+          name: 'x-test',
+          value: 'value 1, value 2'
+        }, {
+          name: 'Content-Type',
+          value: 'application/json'
+        }];
+        var filtered = element.filterHeaders(headers);
+        assert.deepEqual(filtered, ref);
+      });
+
+      test('Should parse headers array to string', function() {
+        var headers = [{
+          name: 'x-test',
+          value: 'value 1'
+        }, {
+          name: 'x-test',
+          value: 'value 2'
+        }, {
+          name: 'Content-Type',
+          value: 'application/json'
+        }];
+        var ref = 'x-test: value 1, value 2\n';
+        ref += 'Content-Type: application/json';
+        var parsed = element.headersToString(headers);
+        assert.equal(parsed, ref);
+      });
+
+      test('Should parse Headers object to string', function() {
+        var headers = new Headers();
+        headers.append('x-test', 'value 1');
+        headers.append('x-test', 'value 2');
+        headers.append('Content-Type', 'application/json');
+        var ref = 'x-test: value 1, value 2\n';
+        ref += 'content-type: application/json';
+        var parsed = element.headersToString(headers);
+        assert.equal(parsed, ref);
+      });
+
+      test('Should parse string to string', function() {
+        var headers = 'x-test: value 1, value 2\n';
+        headers += 'content-type: application/json';
+
+        var ref = 'x-test: value 1, value 2\n';
+        ref += 'content-type: application/json';
+        var parsed = element.headersToString(headers);
+        assert.equal(parsed, ref);
+      });
+
+      test('Should parse string to array', function() {
+        var headers = 'x-test: value 1, value 2\n';
+        headers += 'content-type: application/json\n';
+        headers += 'x-test-2: v1\n';
+        headers += 'x-test-2: v2';
+
+        var ref = [{
+          name: 'x-test',
+          value: 'value 1, value 2'
+        }, {
+          name: 'content-type',
+          value: 'application/json'
+        }, {
+          name: 'x-test-2',
+          value: 'v1'
+        }, {
+          name: 'x-test-2',
+          value: 'v2'
+        }];
+        var parsed = element.headersToJSON(headers);
+        assert.deepEqual(parsed, ref);
+      });
+
+      test('Should parse Headers object to array', function() {
+        var headers = new Headers();
+        headers.append('x-test', 'value 1, value 2');
+        headers.append('Content-Type', 'application/json');
+        headers.append('x-test-2', 'v1');
+        headers.append('x-test-2', 'v2');
+
+        var ref = [{
+          name: 'x-test',
+          value: 'value 1, value 2'
+        }, {
+          name: 'content-type',
+          value: 'application/json'
+        }, {
+          name: 'x-test-2',
+          value: 'v1'
+        }, {
+          name: 'x-test-2',
+          value: 'v2'
+        }];
+        var parsed = element.headersToJSON(headers);
+        assert.deepEqual(parsed, ref);
+      });
+
+      test('Should find the Content-Type header', function() {
+        var headers = new Headers();
+        headers.append('x-test', 'value 1, value 2');
+        headers.append('Content-Type', 'application/json');
+        headers.append('x-test-2', 'v1');
+        headers.append('x-test-2', 'v2');
+
+        var ct = element.getContentType(headers);
+        assert.equal(ct, 'application/json');
+      });
+
+      test('Should find the multipart Content-Type header', function() {
+        var headers = new Headers();
+        headers.append('x-test', 'value 1, value 2');
+        headers.append('Content-Type', 'multipart/mixed; boundary=gc0p4Jq0M2Yt08jU534c0p');
+        headers.append('x-test-2', 'v1');
+        headers.append('x-test-2', 'v2');
+
+        var ct = element.getContentType(headers);
+        assert.equal(ct, 'multipart/mixed; boundary=gc0p4Jq0M2Yt08jU534c0p');
+      });
+
+      test('Should find the Content-Type header with extension', function() {
+        var headers = new Headers();
+        headers.append('x-test', 'value 1, value 2');
+        headers.append('Content-Type', 'text/html; charset=ISO-8859-4');
+        headers.append('x-test-2', 'v1');
+        headers.append('x-test-2', 'v2');
+
+        var ct = element.getContentType(headers);
+        assert.equal(ct, 'text/html');
+      });
+
+      test('Should replace header value', function() {
+        var headers = new Headers();
+        headers.append('x-test', 'value 1, value 2');
+        headers.append('Content-Type', 'text/html; charset=ISO-8859-4');
+        headers.append('x-test-2', 'v1');
+        headers.append('x-test-2', 'v2');
+
+        headers = element.replaceHeaderValue(headers, 'content-type', 'application/json');
+        assert.equal(headers.get('content-type'), 'application/json');
+      });
+
+      test('Should not find error', function() {
+        var headers = new Headers();
+        headers.append('x-test', 'value 1, value 2');
+        headers.append('Content-Type', 'text/html; charset=ISO-8859-4');
+        headers.append('x-test-2', 'v1');
+        headers.append('x-test-2', 'v2');
+
+        var valid = element.getHeaderError(headers);
+        assert.equal(valid, null);
+      });
+
+      test('Should find empty value error', function() {
+        var headers = new Headers();
+        headers.append('x-test', '');
+        headers.append('Content-Type', 'text/html; charset=ISO-8859-4');
+        headers.append('x-test-2', 'v1');
+        headers.append('x-test-2', 'v2');
+
+        var valid = element.getHeaderError(headers);
+        assert.notEqual(valid, null);
+        assert.equal(valid, 'Header value should not be empty');
+      });
+
+      test('Should find no Content-Type error', function() {
+        var headers = new Headers();
+        headers.append('x-test', 'test');
+        headers.append('x-test-2', 'v1');
+        headers.append('x-test-2', 'v2');
+
+        element.isPayload = true;
+        var valid = element.getHeaderError(headers);
+        assert.notEqual(valid, null);
+        assert.equal(valid, 'Content-Type header is not defined');
+      });
+    });
+    </script>
+
+  </body>
+</html>
