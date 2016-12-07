@@ -1,3 +1,2 @@
-# `<headers-parser-behavior>`
+[![Build Status](https://travis-ci.org/advanced-rest-client/headers-parser-behavior.svg?branch=master)](https://travis-ci.org/advanced-rest-client/headers-parser-behavior)  
 
-Headers parser behavior to be impplemented with elements that needs to parse headers data
