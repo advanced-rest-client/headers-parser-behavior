@@ -12,9 +12,19 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
 the License.
 -->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../arc-polyfills/arc-polyfills.html">
+<link rel="import" href="../fetch-polyfill/fetch-polyfill.html">
 <script>
 (function(global) {
   'use strict';
+
+  var ERROR_MESSAGES = {
+    CONTENT_TYPE_MISSING: 'Content-Type header is not defined',
+    HEADER_NAME_EMPTY: 'Header name can\'t be empty',
+    HEADER_NAME_WHITESPACES: 'Header name should not contain whitespaces',
+    HEADER_VALUE_EMPTY: 'Header value should not be empty'
+  };
 
   global.ArcBehaviors = global.ArcBehaviors || {};
   /**
@@ -272,10 +282,13 @@ the License.
     /**
      * Get error message for given header string.
      * @param {Header|Array|String} input A headers to check.
-     * @return {String?} An error message or null if the headers are valid.
+     * @return {?String} An error message or null if the headers are valid.
      */
     getHeaderError: function(input) {
       if (!input) {
+        if (this.isPayload) {
+          return ERROR_MESSAGES.CONTENT_TYPE_MISSING;
+        }
         return null;
       }
       if (!(input instanceof Array)) {
@@ -290,16 +303,16 @@ the License.
           hasContentType = true;
         }
         if (!name || !name.trim()) {
-          msg[msg.length] = 'Header name can\'t be empty';
+          msg[msg.length] = ERROR_MESSAGES.HEADER_NAME_EMPTY;
         } else if (/\s/.test(name)) {
-          msg[msg.length] = 'Header name should not contain whitespaces';
+          msg[msg.length] = ERROR_MESSAGES.HEADER_NAME_WHITESPACES;
         }
         if (!value || !value.trim()) {
-          msg[msg.length] = 'Header value should not be empty';
+          msg[msg.length] = ERROR_MESSAGES.HEADER_VALUE_EMPTY;
         }
       }
       if (this.isPayload && !hasContentType) {
-        msg[msg.length] = 'Content-Type header is not defined';
+        msg[msg.length] = ERROR_MESSAGES.CONTENT_TYPE_MISSING;
       }
       if (msg.length > 0) {
         return msg.join('\n');

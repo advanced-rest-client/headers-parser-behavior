@@ -18,7 +18,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script src="../../iron-test-helpers/test-helpers.js"></script>
     <script src="../../iron-test-helpers/mock-interactions.js"></script>
 
-    <!-- Step 1: import the element to test -->
+    <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
+    <link rel="import" href="../../fetch-polyfill/fetch-polyfill.html">
     <link rel="import" href="test-element.html">
   </head>
   <body>
@@ -30,16 +31,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script>
-    /* global suite, test, fixture, assert */
+    /* global TestHelpers, fixture, assert */
     suite('basic', function() {
       var element;
-      var supportHeaderObject;
       setup(function() {
         element = fixture('basic');
-        var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        var isEdge = isSafari ? false : navigator.userAgent.match(/Edge\/\d+/);
-        supportHeaderObject = !isSafari && !isEdge;
       });
+
+      function hasHeaders() {
+        return 'Headers' in window;
+      }
+
       test('Should filter headers', function() {
         var headers = [{
           name: 'x-test',
@@ -79,18 +81,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         assert.equal(parsed, ref);
       });
 
-      test('Should parse Headers object to string', function() {
-        if (supportHeaderObject) {
-          var headers = new Headers();
-          headers.append('x-test', 'value 1');
-          headers.append('x-test', 'value 2');
-          headers.append('Content-Type', 'application/json');
-          var ref = 'x-test: value 1, value 2\n';
-          ref += 'content-type: application/json';
-          var parsed = element.headersToString(headers);
-          assert.equal(parsed, ref);
-        }
-      });
+      test('Should parse Headers object to string', TestHelpers.skipUnless(hasHeaders, function() {
+        var headers = new Headers();
+        headers.append('x-test', 'value 1');
+        headers.append('x-test', 'value 2');
+        headers.append('Content-Type', 'application/json');
+        var ref = 'x-test: value 1, value 2\n';
+        ref += 'content-type: application/json';
+
+        var parsed = element.headersToString(headers);
+        assert.ok(parsed.match(/content-type:\s?application\/json/gm), 'Contains content type');
+        assert.ok(parsed.match(/x-test:\s?value 1,\s?value 2/gm), 'Contains concatenated headers');
+      }));
 
       test('Should parse string to string', function() {
         var headers = 'x-test: value 1, value 2\n';
@@ -125,31 +127,36 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         assert.deepEqual(parsed, ref);
       });
 
-      test('Should parse Headers object to array', function() {
-        if (supportHeaderObject) {
-          var headers = new Headers();
-          headers.append('x-test', 'value 1, value 2');
-          headers.append('Content-Type', 'application/json');
-          headers.append('x-test-2', 'v1');
-          headers.append('x-test-2', 'v2');
+      test('Should parse Headers object to array', TestHelpers.skipUnless(hasHeaders, function() {
+        var headers = new Headers();
+        headers.append('x-test', 'value 1, value 2');
+        headers.append('Content-Type', 'application/json');
+        headers.append('x-test-2', 'v1');
+        headers.append('x-test-2', 'v2');
 
-          var ref = [{
-            name: 'x-test',
-            value: 'value 1, value 2'
-          }, {
-            name: 'content-type',
-            value: 'application/json'
-          }, {
-            name: 'x-test-2',
-            value: 'v1'
-          }, {
-            name: 'x-test-2',
-            value: 'v2'
-          }];
-          var parsed = element.headersToJSON(headers);
-          assert.deepEqual(parsed, ref);
+        var ref = [{
+          name: 'x-test',
+          value: 'value 1, value 2'
+        }, {
+          name: 'content-type',
+          value: 'application/json'
+        }, {
+          name: 'x-test-2',
+          value: 'v1,v2'
+        }];
+
+        function findInRef(key) {
+          return ref.find(function(item) {
+            return item.name === key;
+          });
         }
-      });
+
+        var parsed = element.headersToJSON(headers);
+        for (var i = 0, len = parsed.length; i < len; i++) {
+          var _ref = findInRef(parsed[i].name);
+          assert.equal(parsed[i].value, _ref.value, 'Contains value for ' + _ref.name + ' header');
+        }
+      }));
 
       test('Should find the Content-Type header', function() {
         var headers = 'x-test: value 1, value 2\n';
