@@ -181,9 +181,15 @@ the License.
         }
       });
       return Object.keys(_tmp).map(function(key) {
+        var value = _tmp[key];
+        if (value && value.indexOf(',') !== -1) {
+          value = value.split(',').map(function(part) {
+            return part.trim();
+          }).join(', ');
+        }
         return {
           name: key,
-          value: _tmp[key]
+          value: value
         };
       });
     },
