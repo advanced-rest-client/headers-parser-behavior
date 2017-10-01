@@ -137,7 +137,7 @@ the License.
         throw new Error('Headers must be an instance of String.');
       }
       var result = [];
-      var headers = headersString.split(/\n/gim);
+      var headers = headersString.split(/\n(?=[^ \t]+)/gim);
 
       for (var i = 0, len = headers.length; i < len; i++) {
         var line = headers[i].trim();
@@ -168,13 +168,28 @@ the License.
      * See `#toJSON` for more info.
      */
     _hedersToJSON: function(headers) {
+      var result = [];
       if (!headers) {
-        return [];
+        return result;
       }
-      return Array.from(headers).map(function(item) {
+      var _tmp = {};
+      headers.forEach(function(value, name) {
+        if (_tmp[name]) {
+          _tmp[name] += ', ' + value;
+        } else {
+          _tmp[name] = value;
+        }
+      });
+      return Object.keys(_tmp).map(function(key) {
+        var value = _tmp[key];
+        if (value && value.indexOf(',') !== -1) {
+          value = value.split(',').map(function(part) {
+            return part.trim();
+          }).join(', ');
+        }
         return {
-          name: item[0],
-          value: item[1]
+          name: key,
+          value: value
         };
       });
     },

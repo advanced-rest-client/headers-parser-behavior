@@ -86,12 +86,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         headers.append('x-test', 'value 1');
         headers.append('x-test', 'value 2');
         headers.append('Content-Type', 'application/json');
-        var ref = 'x-test: value 1, value 2\n';
-        ref += 'content-type: application/json';
 
         var parsed = element.headersToString(headers);
-        assert.ok(parsed.match(/content-type:\s?application\/json/gm), 'Contains content type');
-        assert.ok(parsed.match(/x-test:\s?value 1,\s?value 2/gm), 'Contains concatenated headers');
+        assert.ok(parsed.match(/content-type:\s?application\/json/gim), 'Contains content type');
+        assert.ok(parsed.match(/x-test:\s?value 1,\s?value 2/gim), 'Contains concatenated headers');
       }));
 
       test('Should parse string to string', function() {
@@ -142,7 +140,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           value: 'application/json'
         }, {
           name: 'x-test-2',
-          value: 'v1,v2'
+          value: 'v1, v2'
         }];
 
         function findInRef(key) {
@@ -230,6 +228,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var valid = element.getHeaderError(headers);
         assert.notEqual(valid, null);
         assert.equal(valid, 'Content-Type header is not defined');
+      });
+
+      test('Should process multiline headers per rfc2616 sec4', function() {
+        var headers = 'x-test: value 1, value 2\n';
+        headers += 'x-test-2: v1\n\tv2\n';
+        headers += 'x-test-2: v3';
+
+        var parsed = element.headersToJSON(headers);
+        assert.lengthOf(parsed, 3, 'Result has 3 headers');
+        assert.equal(parsed[1].value, 'v1\n\tv2');
       });
     });
     </script>
