@@ -137,7 +137,7 @@ the License.
         throw new Error('Headers must be an instance of String.');
       }
       var result = [];
-      var headers = headersString.split(/\n/gim);
+      var headers = headersString.split(/\n(?=[^ \t]+)/gim);
 
       for (var i = 0, len = headers.length; i < len; i++) {
         var line = headers[i].trim();
