@@ -168,13 +168,22 @@ the License.
      * See `#toJSON` for more info.
      */
     _hedersToJSON: function(headers) {
+      var result = [];
       if (!headers) {
-        return [];
+        return result;
       }
-      return Array.from(headers).map(function(item) {
+      var _tmp = {};
+      Array.from(headers).forEach(function(item) {
+        if (_tmp[item[0]]) {
+          _tmp[item[0]] += ', ' + item[1];
+        } else {
+          _tmp[item[0]] = item[1];
+        }
+      });
+      return Object.keys(_tmp).map(function(key) {
         return {
-          name: item[0],
-          value: item[1]
+          name: key,
+          value: _tmp[key]
         };
       });
     },
