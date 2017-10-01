@@ -86,12 +86,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         headers.append('x-test', 'value 1');
         headers.append('x-test', 'value 2');
         headers.append('Content-Type', 'application/json');
-        var ref = 'x-test: value 1, value 2\n';
-        ref += 'content-type: application/json';
 
         var parsed = element.headersToString(headers);
-        assert.ok(parsed.match(/content-type:\s?application\/json/gm), 'Contains content type');
-        assert.ok(parsed.match(/x-test:\s?value 1,\s?value 2/gm), 'Contains concatenated headers');
+        assert.ok(parsed.match(/content-type:\s?application\/json/gim), 'Contains content type');
+        assert.ok(parsed.match(/x-test:\s?value 1,\s?value 2/gim), 'Contains concatenated headers');
       }));
 
       test('Should parse string to string', function() {
