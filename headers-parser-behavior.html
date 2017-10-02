@@ -173,11 +173,11 @@ the License.
         return result;
       }
       var _tmp = {};
-      Array.from(headers).forEach(function(item) {
-        if (_tmp[item[0]]) {
-          _tmp[item[0]] += ', ' + item[1];
+      headers.forEach(function(value, name) {
+        if (_tmp[name]) {
+          _tmp[name] += ', ' + value;
         } else {
-          _tmp[item[0]] = item[1];
+          _tmp[name] = value;
         }
       });
       return Object.keys(_tmp).map(function(key) {
