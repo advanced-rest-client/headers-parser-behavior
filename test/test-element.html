@@ -1,4 +1,4 @@
-<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../polymer/polymer-element.html">
 <link rel="import" href="../headers-parser-behavior.html">
 <dom-module id="test-element">
   <template>
@@ -7,16 +7,13 @@
         display: block;
       }
     </style>
-
   </template>
   <script>
-  (function() {
-    Polymer({
-      is: 'test-element',
-      behaviors: [
-        ArcBehaviors.HeadersParserBehavior
-      ]
-    });
-  })();
+  class TestElement extends ArcBehaviors.HeadersParserBehavior(Polymer.Element) {
+    static get is() {
+      return 'test-element';
+    }
+  }
+  window.customElements.define(TestElement.is, TestElement);
   </script>
 </dom-module>

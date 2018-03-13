@@ -12,40 +12,52 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
 the License.
 -->
-<link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../arc-polyfills/arc-polyfills.html">
-<link rel="import" href="../fetch-polyfill/fetch-polyfill.html">
+<link rel="import" href="../polymer/lib/utils/mixin.html">
 <script>
 (function(global) {
-  'use strict';
-
-  var ERROR_MESSAGES = {
-    CONTENT_TYPE_MISSING: 'Content-Type header is not defined',
-    HEADER_NAME_EMPTY: 'Header name can\'t be empty',
-    HEADER_NAME_WHITESPACES: 'Header name should not contain whitespaces',
-    HEADER_VALUE_EMPTY: 'Header value should not be empty'
-  };
-
-  global.ArcBehaviors = global.ArcBehaviors || {};
+'use strict';
+if (!global.ArcBehaviors) {
   /**
-   * Headers parser behavior to be impplemented with elements that needs to parse headers data.
-   *
-   * In most cases function defined in this behavior can work with the headers defined as a string,
-   * array of objects (name, value keys) or as Header object.
-   *
-   * To calculate errors properly, set `isPayload` property when current request can carry a
-   * payload.
-   *
-   * @polymerBehavior ArcBehaviors.HeadersParserBehavior
+   * @namespace ArcBehaviors
    */
-  global.ArcBehaviors.HeadersParserBehavior = {
-    properties: {
-      /**
-       * Set to true when the request can carry a payload.
-       * It's required for calculating headers errors.
-       */
-      isPayload: Boolean
-    },
+  global.ArcBehaviors = {};
+}
+
+const ERROR_MESSAGES = {
+  CONTENT_TYPE_MISSING: 'Content-Type header is not defined',
+  HEADER_NAME_EMPTY: 'Header name can\'t be empty',
+  HEADER_NAME_WHITESPACES: 'Header name should not contain whitespaces',
+  HEADER_VALUE_EMPTY: 'Header value should not be empty'
+};
+/**
+ * Headers parser behavior to be impplemented with elements that needs to parse headers data.
+ *
+ * In most cases function defined in this behavior can work with the headers defined as a string,
+ * array of objects (name, value keys) or as Header object.
+ *
+ * To calculate errors properly, set `isPayload` property when current request can carry a
+ * payload.
+ *
+ * @polymer
+ * @mixinFunction
+ * @memberof ArcBehaviors
+ */
+ArcBehaviors.HeadersParserBehavior = Polymer.dedupingMixin((base) => {
+  /**
+   * @polymer
+   * @mixinClass
+   */
+  class HPBmixin extends base {
+    static get properties() {
+      return {
+        /**
+         * Set to true when the request can carry a payload.
+         * It's required for calculating headers errors.
+         */
+        isPayload: Boolean
+      };
+    }
+
     /**
      * Filter array of headers and return not duplicated array of the same headers.
      * Duplicated headers should be appended to already found one using coma separator.
@@ -55,8 +67,8 @@ the License.
      *                and "value" keys.
      * @return {Array} An array of filtered headers.
      */
-    filterHeaders: function(headers) {
-      var _tmp = {};
+    filterHeaders(headers) {
+      const _tmp = {};
       headers.forEach(function(header) {
         if (header.name in _tmp) {
           if (!!header.value) {
@@ -66,16 +78,15 @@ the License.
           _tmp[header.name] = header.value;
         }
       });
-      var result = [];
-      for (var _key in _tmp) {
+      const result = [];
+      for (let _key in _tmp) {
         result[result.length] = {
           'name': _key,
           'value': _tmp[_key]
         };
       }
       return result;
-    },
-
+    }
     /**
      * Parse headers array to Raw HTTP headers string.
      *
@@ -83,7 +94,7 @@ the License.
      * properties.
      * @returns {String} A HTTP representation of the headers.
      */
-    headersToString: function(headersArray) {
+    headersToString(headersArray) {
       if (typeof headersArray === 'string') {
         return headersArray;
       }
@@ -94,7 +105,7 @@ the License.
         return '';
       }
       headersArray = this.filterHeaders(headersArray);
-      var result = '';
+      let result = '';
       headersArray.forEach(function(header) {
         if (result !== '') {
           result += '\n';
@@ -109,7 +120,7 @@ the License.
         }
       });
       return result;
-    },
+    }
     /**
      * Parse HTTP headers input from string to array of objects containing `name` and `value`
      * properties.
@@ -118,33 +129,33 @@ the License.
      * @returns {Array<Object>} The array of objects where properties are `name` as a header
      * name and `value` as a header content.
      */
-    headersToJSON: function(headers) {
+    headersToJSON(headers) {
       if (typeof headers === 'string') {
         return this._headersStringToJSON(headers);
       } else {
         return this._hedersToJSON(headers);
       }
-    },
+    }
     /**
      * Parse headers string to array of objects.
      * See `#toJSON` for more info.
      */
-    _headersStringToJSON: function(headersString) {
+    _headersStringToJSON(headersString) {
       if (!headersString || headersString.trim() === '') {
         return [];
       }
       if (typeof headersString !== 'string') {
         throw new Error('Headers must be an instance of String.');
       }
-      var result = [];
-      var headers = headersString.split(/\n(?=[^ \t]+)/gim);
+      const result = [];
+      const headers = headersString.split(/\n(?=[^ \t]+)/gim);
 
-      for (var i = 0, len = headers.length; i < len; i++) {
-        var line = headers[i].trim();
+      for (let i = 0, len = headers.length; i < len; i++) {
+        const line = headers[i].trim();
         if (line === '') {
           continue;
         }
-        var sepPosition = line.indexOf(':');
+        const sepPosition = line.indexOf(':');
         if (sepPosition === -1) {
           result[result.length] = {
             name: line,
@@ -152,27 +163,26 @@ the License.
           };
           continue;
         }
-        var name = line.substr(0, sepPosition);
-        var value = line.substr(sepPosition + 1).trim();
-        var obj = {
+        const name = line.substr(0, sepPosition);
+        const value = line.substr(sepPosition + 1).trim();
+        const obj = {
           name: name,
           value: value
         };
         result.push(obj);
       }
       return result;
-    },
-
+    }
     /**
      * Parse Headers object to array of objects.
      * See `#toJSON` for more info.
      */
-    _hedersToJSON: function(headers) {
-      var result = [];
+    _hedersToJSON(headers) {
+      const result = [];
       if (!headers) {
         return result;
       }
-      var _tmp = {};
+      const _tmp = {};
       headers.forEach(function(value, name) {
         if (_tmp[name]) {
           _tmp[name] += ', ' + value;
@@ -181,18 +191,16 @@ the License.
         }
       });
       return Object.keys(_tmp).map(function(key) {
-        var value = _tmp[key];
+        let value = _tmp[key];
         if (value && value.indexOf(',') !== -1) {
-          value = value.split(',').map(function(part) {
-            return part.trim();
-          }).join(', ');
+          value = value.split(',').map((part) => part.trim()).join(', ');
         }
         return {
           name: key,
           value: value
         };
       });
-    },
+    }
 
     /**
      * Helper method for old system: combine headers list with encoding value.
@@ -202,14 +210,12 @@ the License.
      * @param {String} encoding An encoding string from the old request.
      * @return {Boolean} True if encoding has been added to the array.
      */
-    _oldCombine: function(headers, encoding) {
+    _oldCombine(headers, encoding) {
       if (!(headers instanceof Array)) {
         throw new Error('Headers must be an array');
       }
       encoding = String(encoding);
-      var ct = headers.filter(function(item) {
-        return item.name.toLowerCase() === 'content-type';
-      });
+      const ct = headers.filter((item) => item.name.toLowerCase() === 'content-type');
       if (ct.length === 0) {
         headers.push({
           'name': 'Content-Type',
@@ -218,7 +224,7 @@ the License.
         return true;
       }
       return false;
-    },
+    }
 
     /**
      * Get the Content-Type value from the headers.
@@ -226,7 +232,7 @@ the License.
      * @param {Array|String} headers Either HTTP headers string or list of headers.
      * @return {String|null} A content-type header value or null if not found
      */
-    getContentType: function(headers) {
+    getContentType(headers) {
       if (typeof headers !== 'string') {
         headers = this.headersToString(headers);
       }
@@ -234,20 +240,20 @@ the License.
       if (headers === '') {
         return null;
       }
-      var re = /^content-type:\s?(.*)$/im;
-      var match = headers.match(re);
+      const re = /^content-type:\s?(.*)$/im;
+      const match = headers.match(re);
       if (!match) {
         return null;
       }
-      var ct = match[1].trim();
+      let ct = match[1].trim();
       if (ct.indexOf('multipart') === -1) {
-        var index = ct.indexOf('; ');
+        const index = ct.indexOf('; ');
         if (index > 0) {
           ct = ct.substr(0, index);
         }
       }
       return ct;
-    },
+    }
 
     /**
      * Replace value for given header in the headers list.
@@ -258,8 +264,8 @@ the License.
      * @param {String} value Header value to be repleced.
      * @return {Array} Updated headers.
      */
-    replaceHeaderValue: function(headers, name, value) {
-      var origType = 'headers';
+    replaceHeaderValue(headers, name, value) {
+      let origType = 'headers';
       if (headers instanceof Array) {
         origType = 'array';
       } else if (typeof headers === 'string') {
@@ -268,8 +274,8 @@ the License.
       if (origType !== 'array') {
         headers = this.headersToJSON(headers);
       }
-      var _name = name.toLowerCase();
-      var found = false;
+      const _name = name.toLowerCase();
+      let found = false;
       headers.forEach(function(header) {
         if (header.name.toLowerCase() === _name) {
           header.value = value;
@@ -287,19 +293,18 @@ the License.
       } else if (origType === 'string') {
         return this.headersToString(headers);
       }
-      var obj = {};
+      const obj = {};
       headers.forEach(function(header) {
         obj[header.name] = header.value;
       });
       return new Headers(obj);
-    },
-
+    }
     /**
      * Get error message for given header string.
      * @param {Header|Array|String} input A headers to check.
      * @return {?String} An error message or null if the headers are valid.
      */
-    getHeaderError: function(input) {
+    getHeaderError(input) {
       if (!input) {
         if (this.isPayload) {
           return ERROR_MESSAGES.CONTENT_TYPE_MISSING;
@@ -309,11 +314,11 @@ the License.
       if (!(input instanceof Array)) {
         input = this.headersToJSON(input);
       }
-      var msg = [];
-      var hasContentType = false;
-      for (var i = 0, len = input.length; i < len; i++) {
-        var name = input[i].name;
-        var value = input[i].value;
+      const msg = [];
+      let hasContentType = false;
+      for (let i = 0, len = input.length; i < len; i++) {
+        const name = input[i].name;
+        const value = input[i].value;
         if (name.toLowerCase() === 'content-type') {
           hasContentType = true;
         }
@@ -334,6 +339,8 @@ the License.
       }
       return null;
     }
-  };
+  }
+  return HPBmixin;
+});
 })(window);
 </script>
