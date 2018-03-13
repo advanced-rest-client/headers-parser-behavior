@@ -105,22 +105,33 @@ ArcBehaviors.HeadersParserBehavior = Polymer.dedupingMixin((base) => {
         return '';
       }
       headersArray = this.filterHeaders(headersArray);
+      return headersArray
+      .map((header) => this.headerItemToString(header))
+      .join('\n');
+    }
+    /**
+     * Transforms a header model item to a string.
+     * Array values are supported.
+     *
+     * @param {Object} header Object with name and value.
+     * @return {String} Generated headers line
+     */
+    headerItemToString(header) {
+      const key = header.name;
+      let value = header.value;
+      if (value instanceof Array) {
+        value = value.join(',');
+      }
       let result = '';
-      headersArray.forEach(function(header) {
-        if (result !== '') {
-          result += '\n';
+      if (key && key.trim() !== '') {
+        result += key + ': ';
+        if (value) {
+          result += value;
         }
-        var key = header.name;
-        var value = header.value;
-        if (key && key.trim() !== '') {
-          result += key + ': ';
-          if (value && value.trim() !== '') {
-            result += value;
-          }
-        }
-      });
+      }
       return result;
     }
+
     /**
      * Parse HTTP headers input from string to array of objects containing `name` and `value`
      * properties.
