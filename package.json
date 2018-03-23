@@ -1,17 +1,18 @@
 {
-  "name": "headers-parser-behavior",
+  "name": "@api-components/headers-parser-behavior",
   "version": "2.0.1",
   "license": "Apache-2.0",
-  "description": "Headers parser behavior to be impplemented with elements that needs to parse headers data",
+  "description": "Headers parser Polymer Mixin to be impplemented with elements that needs to parse headers data",
   "devDependencies": {
     "@polymer/gen-typescript-declarations": "^1.1.1",
     "bower": "^1.8.0"
   },
   "private": false,
-  "main": [
-    "headers-parser-behavior.html"
+  "main": "headers-parser-behavior.html",
+  "authors": [
+    "Pawel Psztyc",
+    "The Advanced REST client authors <arc@mulesoft.com>"
   ],
-  "author": "jarrod",
   "scripts": {
     "lint": "node_modules/.bin/polymer lint headers-parser-behavior.html",
     "test-sauce": "node_modules/.bin/polymer test --plugin sauce --job-name \"headers-parser-behavior:local-test\"",
