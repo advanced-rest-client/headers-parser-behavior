@@ -1,6 +1,6 @@
 {
   "name": "@api-components/headers-parser-behavior",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "license": "Apache-2.0",
   "description": "Headers parser Polymer Mixin to be impplemented with elements that needs to parse headers data",
   "devDependencies": {
