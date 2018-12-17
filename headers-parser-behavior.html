@@ -137,28 +137,32 @@ ArcBehaviors.HeadersParserBehavior = Polymer.dedupingMixin((base) => {
      * properties.
      *
      * @param {String|Headers} headers Raw HTTP headers input or Headers object
-     * @returns {Array<Object>} The array of objects where properties are `name` as a header
+     * @return {Array<Object>} The array of objects where properties are `name` as a header
      * name and `value` as a header content.
      */
     headersToJSON(headers) {
       if (typeof headers === 'string') {
         return this._headersStringToJSON(headers);
-      } else {
-        return this._hedersToJSON(headers);
       }
+      return this._hedersToJSON(headers);
     }
     /**
      * Parse headers string to array of objects.
      * See `#toJSON` for more info.
+     * @param {String} headersString
+     * @return {Array<Object>}
      */
     _headersStringToJSON(headersString) {
-      if (!headersString || headersString.trim() === '') {
-        return [];
+      const result = [];
+      if (!headersString) {
+        return result;
       }
       if (typeof headersString !== 'string') {
         throw new Error('Headers must be an instance of String.');
       }
-      const result = [];
+      if (headersString.trim() === '') {
+        return result;
+      }
       const headers = headersString.split(/\n(?=[^ \t]+)/gim);
 
       for (let i = 0, len = headers.length; i < len; i++) {
@@ -187,12 +191,16 @@ ArcBehaviors.HeadersParserBehavior = Polymer.dedupingMixin((base) => {
     /**
      * Parse Headers object to array of objects.
      * See `#toJSON` for more info.
+     *
+     * @param {Headers|Object} headers
+     * @return {Array<Object>}
      */
     _hedersToJSON(headers) {
       const result = [];
       if (!headers) {
         return result;
       }
+      headers = new Headers(headers);
       const _tmp = {};
       headers.forEach(function(value, name) {
         if (_tmp[name]) {
